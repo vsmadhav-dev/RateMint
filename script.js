@@ -1,9 +1,13 @@
-const BASE_URL = 'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/';
+const BASE_URL = 'https://api.frankfurter.dev/v2/rate';
 const fromCurr = document.querySelector('.from select')
 const toCurr = document.querySelector('.to select')
 const dropdowns = document.querySelectorAll('.dropdown select');
 const btn = document.querySelector('.submit');
- for(let select of dropdowns) {
+const msg = document.querySelector('.msg');
+
+
+
+for(let select of dropdowns) {
      for (let code in countryList) {
   let newOption = document.createElement('option');
   newOption.innerText = code;
@@ -38,7 +42,52 @@ img.src = newSrc;
      }
 
 // console.log(fromCurr.value , toCurr.value)
-const URL = `${BASE_URL}/${fromCurr.value.toLowerCase()}/${toCurr.value.toLowerCase()}.json`;
+const URL = `${BASE_URL}/${fromCurr.value}/${toCurr.value}`
  let response = await fetch(URL);
  console.log(response);
+ let data = await response.json();
+ let rate = data[toCurr.value];
+ console.log(data);
+
+ let final = amountValue * rate;
+ msg.innerText = `${amountValue} ${fromCurr.value} = ${final} ${toCurr.value}`;
+
  })
+  const exchangeUpdateRate = async () => {
+    let amount = document.querySelector('.amount input');
+    let amountValue = amount.value;
+    if(amountValue === '' || amountValue === '' || amountValue < 1){
+        amountValue = 1;
+        amount.value = amountValue;
+    }
+
+// console.log(fromCurr.value , toCurr.value)
+    const URL = `${BASE_URL}/${fromCurr.value}/${toCurr.value}`
+    let response = await fetch(URL);
+    console.log(response);
+    let data = await response.json();
+    let rate = data[toCurr.value];
+    console.log(data);
+
+    let final = amountValue * rate;
+    msg.innerText = `${amountValue} ${fromCurr.value} = ${final} ${toCurr.value}`;
+}
+window.addEventListener('load', async () => {
+    let amount = document.querySelector('.amount input');
+    let amountValue = amount.value;
+    if(amountValue === '' || amountValue === '' || amountValue < 1){
+        amountValue = 1;
+        amount.value = amountValue;
+    }
+
+// console.log(fromCurr.value , toCurr.value)
+    const URL = `${BASE_URL}/${fromCurr.value}/${toCurr.value}`
+    let response = await fetch(URL);
+    console.log(response);
+    let data = await response.json();
+    let rate = data[toCurr.value];
+    console.log(data);
+
+    let final = amountValue * rate;
+    msg.innerText = `${amountValue} ${fromCurr.value} = ${final} ${toCurr.value}`;
+})
