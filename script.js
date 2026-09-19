@@ -1,4 +1,5 @@
-const BASE_URL = 'https://api.frankfurter.app/latest';
+const PRIMARY_BASE_URL = 'https://api.frankfurter.app/latest';
+const FALLBACK_BASE_URL = 'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies';
 const fromCurr = document.querySelector('.from select')
 const toCurr = document.querySelector('.to select')
 const dropdowns = document.querySelectorAll('.dropdown select');
@@ -42,6 +43,33 @@ img.src = newSrc;
     return amountValue;
  }
 
+ const getRate = async (fromValue, toValue) => {
+    const primaryURL = `${PRIMARY_BASE_URL}?from=${fromValue}&to=${toValue}`;
+    try {
+        let response = await fetch(primaryURL);
+        if(response.ok){
+            let data = await response.json();
+            let rate = data?.rates?.[toValue];
+            if(Number.isFinite(rate)){
+                return rate;
+            }
+        }
+    } catch (error) {}
+
+    const fallbackURL = `${FALLBACK_BASE_URL}/${fromValue.toLowerCase()}.json`;
+    let fallbackResponse = await fetch(fallbackURL);
+    if(!fallbackResponse.ok){
+        throw new Error('Fallback source unavailable');
+    }
+
+    let fallbackData = await fallbackResponse.json();
+    let fallbackRate = fallbackData?.[fromValue.toLowerCase()]?.[toValue.toLowerCase()];
+    if(!Number.isFinite(fallbackRate)){
+        throw new Error('Rate not found');
+    }
+    return fallbackRate;
+ }
+
  const exchangeUpdateRate = async () => {
     const amountValue = getAmountValue();
     const fromValue = fromCurr.value;
@@ -52,20 +80,8 @@ img.src = newSrc;
         return;
     }
 
-    const URL = `${BASE_URL}?from=${fromValue}&to=${toValue}`;
-
     try {
-        let response = await fetch(URL);
-        if(!response.ok){
-            throw new Error('Unsupported currency pair');
-        }
-
-        let data = await response.json();
-        let rate = data?.rates?.[toValue];
-
-        if(!Number.isFinite(rate)){
-            throw new Error('Rate not found');
-        }
+        let rate = await getRate(fromValue, toValue);
 
         let final = amountValue * rate;
         msg.innerText = `${amountValue} ${fromValue} = ${final} ${toValue}`;
